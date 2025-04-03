@@ -143,7 +143,11 @@ class PriorityQueue<E, P> {
         tree.set(idx2, node1);
     }
 
-    /* Node Class */
+    /**
+     * Class Node
+     *
+     * Represents an element in the priority queue with its value and priority.
+     */
     public class Node {
         E value;
         P priority;
@@ -161,17 +165,45 @@ class PriorityQueue<E, P> {
         public P priority() { return priority; }
         public boolean isValid() { return !removed; }
 
+        /**
+         * Changes the priority of this node and repositions it in the heap.
+         */
         public void changePriority(P newPriority) {
-            if (removed) throw new IllegalStateException("Node is removed");
+            checkNodeValidity();
             int cmp = compare(newPriority, priority);
             priority = newPriority;
             if (cmp < 0) pullUp(idx);
             else if (cmp > 0) pushDown(idx);
         }
 
+        /**
+         * Removes this node from the priority queue.
+         */
         public void remove() {
-            if (removed) throw new IllegalStateException("Node is removed");
-            PriorityQueue.this.remove(this);
+            checkNodeValidity();
+            markRemoved();
+            
+            if (idx == tree.size() - 1) {
+                tree.remove(idx);
+            } else {
+                // Swap with last element
+                Node last = tree.get(tree.size() - 1);
+                swap(idx, tree.size() - 1);
+                tree.remove(tree.size() - 1);
+                
+                // Restore heap property
+                if (idx > 0 && compare(tree.get(parent(idx)).priority, tree.get(idx).priority) > 0) {
+                    pullUp(idx);
+                } else {
+                    pushDown(idx);
+                }
+            }
+        }
+
+        private void checkNodeValidity() {
+            if (removed) {
+                throw new IllegalStateException("node is no longer part of heap");
+            }
         }
     }
 }
