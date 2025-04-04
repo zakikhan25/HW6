@@ -10,9 +10,6 @@
 import java.util.*;
 
 public class ProblemSolutions {
-    /**
-     * Solves the boulder game problem
-     */
     public static int lastBoulder(int[] boulders) {
         PriorityQueue<Integer, Integer> maxHeap = new PriorityQueue<>(
             boulders.length,
@@ -34,9 +31,6 @@ public class ProblemSolutions {
         return maxHeap.isEmpty() ? 0 : maxHeap.poll().value();
     }
 
-    /**
-     * Finds and returns sorted duplicate strings
-     */
     public static ArrayList<String> showDuplicates(ArrayList<String> input) {
         Map<String, Integer> freq = new HashMap<>();
         ArrayList<String> result = new ArrayList<>();
@@ -55,9 +49,6 @@ public class ProblemSolutions {
         return result;
     }
 
-    /**
-     * Finds pairs that sum to k
-     */
     public static ArrayList<String> pair(int[] input, int k) {
         Arrays.sort(input);
         ArrayList<String> result = new ArrayList<>();
