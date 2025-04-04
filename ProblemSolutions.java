@@ -15,14 +15,19 @@ public class ProblemSolutions {
      * Solves the boulder game problem using a max-heap.
      */
     public static int lastBoulder(int[] boulders) {
-        // Create max-heap with explicit Integer types for both element and priority
+        // Create max-heap with explicit comparator
         PriorityQueue<Integer, Integer> maxHeap = new PriorityQueue<Integer, Integer>(
-            (a, b) -> Integer.compare(b, a)  // Reverse comparator for max-heap
+            new Comparator<Integer>() {
+                @Override
+                public int compare(Integer a, Integer b) {
+                    return b.compareTo(a); // Reverse order for max-heap
+                }
+            }
         );
         
-        // Add all boulders to the heap (using element as its own priority)
+        // Add all boulders to the heap
         for (int stone : boulders) {
-            maxHeap.offer(stone, stone);
+            maxHeap.add(stone, stone);
         }
         
         // Process until 1 or 0 boulders remain
@@ -31,7 +36,7 @@ public class ProblemSolutions {
             int x = maxHeap.poll().value();
             
             if (x != y) {
-                maxHeap.offer(y - x, y - x);
+                maxHeap.add(y - x, y - x);
             }
         }
         
@@ -45,12 +50,10 @@ public class ProblemSolutions {
         Map<String, Integer> frequencyMap = new HashMap<>();
         ArrayList<String> result = new ArrayList<>();
         
-        // Count frequency of each string
         for (String s : input) {
             frequencyMap.put(s, frequencyMap.getOrDefault(s, 0) + 1);
         }
         
-        // Add strings with frequency > 1 to result
         for (Map.Entry<String, Integer> entry : frequencyMap.entrySet()) {
             if (entry.getValue() > 1) {
                 result.add(entry.getKey());
@@ -74,7 +77,6 @@ public class ProblemSolutions {
             int sum = input[left] + input[right];
             if (sum == k) {
                 result.add("(" + input[left] + ", " + input[right] + ")");
-                // Skip duplicates
                 while (left < right && input[left] == input[left + 1]) left++;
                 while (left < right && input[right] == input[right - 1]) right--;
                 left++;
