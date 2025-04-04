@@ -3,7 +3,7 @@
  *
  *   Zaki Khan / 272 001
  *
- *   Complete Priority Queue implementation using min-heap
+ *   Final Corrected Priority Queue Implementation
  *
  ********************************************************************/
 
@@ -61,8 +61,6 @@ class PriorityQueue<E, P> {
         if (tree.isEmpty()) return null;
         
         Node head = tree.get(0);
-        head.markRemoved();
-        
         if (tree.size() == 1) {
             tree.remove(0);
             return head;
@@ -99,9 +97,9 @@ class PriorityQueue<E, P> {
     }
 
     private void pushDown(int i) {
-        int smallest = i;
         int left = leftChild(i);
         int right = rightChild(i);
+        int smallest = i;
 
         if (left < tree.size() && 
             comparator.compare(tree.get(left).priority, tree.get(smallest).priority) < 0) {
@@ -111,7 +109,7 @@ class PriorityQueue<E, P> {
             comparator.compare(tree.get(right).priority, tree.get(smallest).priority) < 0) {
             smallest = right;
         }
-        
+
         if (smallest != i) {
             swap(i, smallest);
             pushDown(smallest);
@@ -119,10 +117,13 @@ class PriorityQueue<E, P> {
     }
 
     private void pullUp(int i) {
-        while (i > 0 && 
-               comparator.compare(tree.get(parent(i)).priority, tree.get(i).priority) > 0) {
-            swap(i, parent(i));
-            i = parent(i);
+        while (i > 0) {
+            int parent = parent(i);
+            if (comparator.compare(tree.get(parent).priority, tree.get(i).priority) <= 0) {
+                break;
+            }
+            swap(i, parent);
+            i = parent;
         }
     }
 
@@ -131,11 +132,12 @@ class PriorityQueue<E, P> {
     int parent(int i) { return (i - 1) / 2; }
 
     void swap(int i, int j) {
-        Node temp = tree.get(i);
-        tree.set(i, tree.get(j));
-        tree.set(j, temp);
-        tree.get(i).idx = i;
-        tree.get(j).idx = j;
+        Node node1 = tree.get(i);
+        Node node2 = tree.get(j);
+        node1.idx = j;
+        node2.idx = i;
+        tree.set(i, node2);
+        tree.set(j, node1);
     }
 
     public class Node {
