@@ -3,7 +3,7 @@
  *
  *   Zaki Khan / 272 001
  *
- *   Complete implementation of a Priority Queue using min-heap
+ *   Complete Priority Queue implementation using min-heap
  *
  ********************************************************************/
 
@@ -11,15 +11,11 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;
 
-/**
- * Priority Queue implementation using a min-heap
- */
 class PriorityQueue<E, P> {
     private static final int DEFAULT_CAPACITY = 10;
     final Comparator<P> comparator;
     final ArrayList<Node> tree;
 
-    /* Constructors */
     public PriorityQueue() {
         this(DEFAULT_CAPACITY, (a, b) -> ((Comparable<P>) a).compareTo(b));
     }
@@ -29,22 +25,15 @@ class PriorityQueue<E, P> {
         this.comparator = comparator;
     }
 
-    /* Basic Operations */
     public int size() { return tree.size(); }
     public boolean isEmpty() { return tree.isEmpty(); }
     public void clear() { tree.clear(); }
     public Node offer(E e, P p) { return add(e, p); }
 
-    /**
-     * Retrieves the head of the queue without removing it
-     */
     public Node peek() {
         return tree.isEmpty() ? null : tree.get(0);
     }
 
-    /**
-     * Adds an element to the priority queue
-     */
     public Node add(E e, P priority) {
         Node newNode = new Node(e, priority, tree.size());
         tree.add(newNode);
@@ -52,9 +41,6 @@ class PriorityQueue<E, P> {
         return newNode;
     }
 
-    /**
-     * Checks if queue contains element
-     */
     public boolean contains(E e) {
         for (Node node : tree) {
             if (node.value.equals(e)) {
@@ -64,9 +50,13 @@ class PriorityQueue<E, P> {
         return false;
     }
 
-    /**
-     * Removes and returns the head of the queue
-     */
+    public Node remove() {
+        if (tree.isEmpty()) {
+            throw new IllegalStateException("PriorityQueue is empty");
+        }
+        return poll();
+    }
+
     public Node poll() {
         if (tree.isEmpty()) return null;
         
@@ -86,7 +76,28 @@ class PriorityQueue<E, P> {
         return head;
     }
 
-    /* Heap maintenance methods */
+    public void remove(Node node) {
+        if (node.removed || node.idx >= tree.size() || tree.get(node.idx) != node) {
+            throw new IllegalStateException("Node is not in the queue");
+        }
+        
+        if (node.idx == tree.size() - 1) {
+            tree.remove(node.idx);
+        } else {
+            Node last = tree.get(tree.size() - 1);
+            swap(node.idx, tree.size() - 1);
+            tree.remove(tree.size() - 1);
+            node.markRemoved();
+            
+            if (last.idx > 0 && 
+                comparator.compare(tree.get(parent(last.idx)).priority, last.priority) > 0) {
+                pullUp(last.idx);
+            } else {
+                pushDown(last.idx);
+            }
+        }
+    }
+
     private void pushDown(int i) {
         int smallest = i;
         int left = leftChild(i);
@@ -115,7 +126,6 @@ class PriorityQueue<E, P> {
         }
     }
 
-    /* Helper methods */
     int leftChild(int i) { return 2 * i + 1; }
     int rightChild(int i) { return 2 * i + 2; }
     int parent(int i) { return (i - 1) / 2; }
@@ -128,9 +138,6 @@ class PriorityQueue<E, P> {
         tree.get(j).idx = j;
     }
 
-    /**
-     * Node class representing elements in the priority queue
-     */
     public class Node {
         final E value;
         P priority;
@@ -157,7 +164,6 @@ class PriorityQueue<E, P> {
         }
 
         public void remove() {
-            if (removed) throw new IllegalStateException("Node is removed");
             PriorityQueue.this.remove(this);
         }
     }
