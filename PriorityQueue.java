@@ -3,7 +3,7 @@
  *
  *   Zaki Khan / 272 001
  *
- *   Priority Queue Implementation
+ *   Final Corrected Priority Queue Implementation
  *
  ********************************************************************/
 
@@ -37,7 +37,7 @@ class PriorityQueue<E, P> {
     public Node add(E e, P priority) {
         Node newNode = new Node(e, priority, tree.size());
         tree.add(newNode);
-        pullUp(newNode.idx);
+        pullUp(tree.size() - 1);
         return newNode;
     }
 
@@ -69,7 +69,28 @@ class PriorityQueue<E, P> {
         Node last = tree.remove(tree.size() - 1);
         tree.set(0, last);
         last.idx = 0;
-        pushDown(0);
+        
+        // Iterative heapify down
+        int current = 0;
+        while (true) {
+            int left = leftChild(current);
+            int right = rightChild(current);
+            int smallest = current;
+            
+            if (left < tree.size() && 
+                comparator.compare(tree.get(left).priority, tree.get(smallest).priority) < 0) {
+                smallest = left;
+            }
+            if (right < tree.size() && 
+                comparator.compare(tree.get(right).priority, tree.get(smallest).priority) < 0) {
+                smallest = right;
+            }
+            
+            if (smallest == current) break;
+            
+            swap(current, smallest);
+            current = smallest;
+        }
         
         return head;
     }
@@ -87,6 +108,7 @@ class PriorityQueue<E, P> {
             tree.remove(tree.size() - 1);
             node.markRemoved();
             
+            // Restore heap property
             if (last.idx > 0 && 
                 comparator.compare(tree.get(parent(last.idx)).priority, last.priority) > 0) {
                 pullUp(last.idx);
