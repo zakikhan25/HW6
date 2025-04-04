@@ -1,8 +1,9 @@
+
 /******************************************************************
  *
  *   Zaki Khan / 272 001
  *
- *   Final Corrected Priority Queue Implementation
+ *   Priority Queue Implementation
  *
  ********************************************************************/
 
@@ -69,9 +70,41 @@ class PriorityQueue<E, P> {
         Node last = tree.remove(tree.size() - 1);
         tree.set(0, last);
         last.idx = 0;
-        pushDown(0);
+        
+        // Fixed iterative heapify down
+        int current = 0;
+        while (true) {
+            int left = leftChild(current);
+            int right = rightChild(current);
+            int smallest = current;
+            
+            if (left < tree.size() && 
+                comparator.compare(tree.get(left).priority, tree.get(current).priority) < 0) {
+                smallest = left;
+            }
+            if (right < tree.size() && 
+                comparator.compare(tree.get(right).priority, tree.get(smallest).priority) < 0) {
+                smallest = right;
+            }
+            
+            if (smallest == current) break;
+            
+            swap(current, smallest);
+            current = smallest;
+        }
         
         return head;
+    }
+
+    private void pullUp(int i) {
+        while (i > 0) {
+            int parent = parent(i);
+            if (comparator.compare(tree.get(parent).priority, tree.get(i).priority) <= 0) {
+                break;
+            }
+            swap(i, parent);
+            i = parent;
+        }
     }
 
     private void pushDown(int i) {
@@ -91,17 +124,6 @@ class PriorityQueue<E, P> {
         if (smallest != i) {
             swap(i, smallest);
             pushDown(smallest);
-        }
-    }
-
-    private void pullUp(int i) {
-        while (i > 0) {
-            int parent = parent(i);
-            if (comparator.compare(tree.get(parent).priority, tree.get(i).priority) <= 0) {
-                break;
-            }
-            swap(i, parent);
-            i = parent;
         }
     }
 
