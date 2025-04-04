@@ -3,7 +3,7 @@
  *
  *   Zaki Khan / 272 001
  *
- *   Solutions for assignment problems
+ *   Problem Solutions Implementation
  *
  ********************************************************************/
 
