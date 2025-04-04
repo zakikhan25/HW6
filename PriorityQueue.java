@@ -3,7 +3,7 @@
  *
  *   Zaki Khan / 272 001
  *
- *   Final Corrected Priority Queue Implementation
+ *   Priority Queue Implementation
  *
  ********************************************************************/
 
@@ -66,54 +66,34 @@ class PriorityQueue<E, P> {
             return head;
         }
         
+        // Move last element to root
         Node last = tree.remove(tree.size() - 1);
         tree.set(0, last);
         last.idx = 0;
-        pushDown(0);
+        
+        // Heapify down
+        int current = 0;
+        while (true) {
+            int left = leftChild(current);
+            int right = rightChild(current);
+            int smallest = current;
+            
+            if (left < tree.size() && 
+                comparator.compare(tree.get(left).priority, tree.get(smallest).priority) < 0) {
+                smallest = left;
+            }
+            if (right < tree.size() && 
+                comparator.compare(tree.get(right).priority, tree.get(smallest).priority) < 0) {
+                smallest = right;
+            }
+            
+            if (smallest == current) break;
+            
+            swap(current, smallest);
+            current = smallest;
+        }
         
         return head;
-    }
-
-    public void remove(Node node) {
-        if (node.removed || node.idx >= tree.size() || tree.get(node.idx) != node) {
-            throw new IllegalStateException("Node is not in the queue");
-        }
-        
-        if (node.idx == tree.size() - 1) {
-            tree.remove(node.idx);
-        } else {
-            Node last = tree.get(tree.size() - 1);
-            swap(node.idx, tree.size() - 1);
-            tree.remove(tree.size() - 1);
-            node.markRemoved();
-            
-            if (last.idx > 0 && 
-                comparator.compare(tree.get(parent(last.idx)).priority, last.priority) > 0) {
-                pullUp(last.idx);
-            } else {
-                pushDown(last.idx);
-            }
-        }
-    }
-
-    private void pushDown(int i) {
-        int left = leftChild(i);
-        int right = rightChild(i);
-        int smallest = i;
-
-        if (left < tree.size() && 
-            comparator.compare(tree.get(left).priority, tree.get(smallest).priority) < 0) {
-            smallest = left;
-        }
-        if (right < tree.size() && 
-            comparator.compare(tree.get(right).priority, tree.get(smallest).priority) < 0) {
-            smallest = right;
-        }
-
-        if (smallest != i) {
-            swap(i, smallest);
-            pushDown(smallest);
-        }
     }
 
     private void pullUp(int i) {
@@ -132,12 +112,16 @@ class PriorityQueue<E, P> {
     int parent(int i) { return (i - 1) / 2; }
 
     void swap(int i, int j) {
-        Node node1 = tree.get(i);
-        Node node2 = tree.get(j);
-        node1.idx = j;
-        node2.idx = i;
-        tree.set(i, node2);
-        tree.set(j, node1);
+        Node nodeI = tree.get(i);
+        Node nodeJ = tree.get(j);
+        
+        // Swap positions
+        nodeI.idx = j;
+        nodeJ.idx = i;
+        
+        // Swap in array
+        tree.set(i, nodeJ);
+        tree.set(j, nodeI);
     }
 
     public class Node {
@@ -165,7 +149,30 @@ class PriorityQueue<E, P> {
             else if (cmp > 0) pushDown(idx);
         }
 
+        private void pushDown(int i) {
+            while (true) {
+                int left = leftChild(i);
+                int right = rightChild(i);
+                int smallest = i;
+                
+                if (left < tree.size() && 
+                    comparator.compare(tree.get(left).priority, tree.get(smallest).priority) < 0) {
+                    smallest = left;
+                }
+                if (right < tree.size() && 
+                    comparator.compare(tree.get(right).priority, tree.get(smallest).priority) < 0) {
+                    smallest = right;
+                }
+                
+                if (smallest == i) break;
+                
+                swap(i, smallest);
+                i = smallest;
+            }
+        }
+
         public void remove() {
+            if (removed) throw new IllegalStateException("Node already removed");
             PriorityQueue.this.remove(this);
         }
     }
