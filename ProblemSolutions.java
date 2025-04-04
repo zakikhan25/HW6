@@ -1,4 +1,3 @@
-
 /******************************************************************
  *
  *   Zaki Khan / 272 001
@@ -9,84 +8,80 @@
 import java.util.*;
 
 public class ProblemSolutions {
+    /******************************************************************
+     * 1️⃣ Boulder Game
+     * This method simulates the "smashing boulders" game using a max-heap.
+     ******************************************************************/
     public static int lastBoulder(int[] boulders) {
-        // Create a max heap (reversed comparator)
-        PriorityQueue<Integer, Integer> maxHeap = new PriorityQueue<>(
-            boulders.length,
-            (a, b) -> b.compareTo(a)
-        );
+        // Use a max heap (reverse order priority queue)
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
         
-        // Add all boulders to the max heap
+        // Add all boulders to max heap
         for (int stone : boulders) {
-            maxHeap.add(stone, stone);
+            maxHeap.add(stone);
         }
         
-        // Process according to the game rules
         while (maxHeap.size() > 1) {
-            // Get the heaviest two boulders
-            int y = maxHeap.poll().value();
-            int x = maxHeap.poll().value();
-            
-            // If they have different weights
+            int y = maxHeap.poll(); // Heaviest boulder
+            int x = maxHeap.poll(); // Second heaviest
+
             if (x != y) {
-                // Add back the new boulder with weight y-x
-                maxHeap.add(y - x, y - x);
+                maxHeap.add(y - x); // Add remaining boulder
             }
-            // If equal weights, both are destroyed (do nothing)
         }
         
-        // Return the last boulder or 0 if none left
-        return maxHeap.isEmpty() ? 0 : maxHeap.poll().value();
+        return maxHeap.isEmpty() ? 0 : maxHeap.poll();
     }
-    
+
+    /******************************************************************
+     * 2️⃣ Sorting 1 - Find Duplicates
+     * This method finds and returns a sorted list of duplicates.
+     ******************************************************************/
     public static ArrayList<String> showDuplicates(ArrayList<String> input) {
-        // Track frequency of each string
-        Map<String, Integer> freq = new HashMap<>();
+        Map<String, Integer> frequencyMap = new HashMap<>();
         ArrayList<String> result = new ArrayList<>();
         
-        // Count occurrences of each string
         for (String s : input) {
-            freq.put(s, freq.getOrDefault(s, 0) + 1);
+            frequencyMap.put(s, frequencyMap.getOrDefault(s, 0) + 1);
         }
         
-        // Add strings that appear more than once to result
-        for (Map.Entry<String, Integer> e : freq.entrySet()) {
-            if (e.getValue() > 1) {
-                result.add(e.getKey());
+        for (Map.Entry<String, Integer> entry : frequencyMap.entrySet()) {
+            if (entry.getValue() > 1) {
+                result.add(entry.getKey());
             }
         }
         
-        // Sort in ascending order
         Collections.sort(result);
         return result;
     }
-    
+
+    /******************************************************************
+     * 3️⃣ Sorting 2 - Pair Sum Matching
+     * This method finds all unique pairs that sum to k and returns them as strings.
+     ******************************************************************/
     public static ArrayList<String> pair(int[] input, int k) {
-        // Sort the input array
+        // Sort the input array to use two-pointer technique
         Arrays.sort(input);
         ArrayList<String> result = new ArrayList<>();
         int left = 0, right = input.length - 1;
-        
+
         while (left < right) {
             int sum = input[left] + input[right];
             if (sum == k) {
-                // Add pair to result
                 result.add("(" + input[left] + ", " + input[right] + ")");
-                
-                // Skip duplicates
+
+                // Skip duplicate values to avoid duplicate pairs
                 int currLeft = input[left];
                 int currRight = input[right];
                 while (left < right && input[left] == currLeft) left++;
                 while (left < right && input[right] == currRight) right--;
             } else if (sum < k) {
-                // Need larger sum, move left pointer
-                left++;
+                left++; // Increase sum
             } else {
-                // Need smaller sum, move right pointer
-                right--;
+                right--; // Decrease sum
             }
         }
-        
+
         return result;
     }
 }
