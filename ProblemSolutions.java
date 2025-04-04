@@ -15,8 +15,9 @@ public class ProblemSolutions {
      * Solves the boulder game problem using a max-heap.
      */
     public static int lastBoulder(int[] boulders) {
-        // Create max-heap with explicit comparator
+        // Create max-heap with initial capacity and custom comparator
         PriorityQueue<Integer, Integer> maxHeap = new PriorityQueue<Integer, Integer>(
+            10, // Initial capacity
             new Comparator<Integer>() {
                 @Override
                 public int compare(Integer a, Integer b) {
