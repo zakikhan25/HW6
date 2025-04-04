@@ -15,21 +15,23 @@ public class ProblemSolutions {
      * Solves the boulder game problem using a max-heap.
      */
     public static int lastBoulder(int[] boulders) {
-        // Create max-heap using custom comparator
-        PriorityQueue<Integer, Integer> maxHeap = new PriorityQueue<>((a, b) -> b - a);
+        // Create max-heap with explicit Integer types for both element and priority
+        PriorityQueue<Integer, Integer> maxHeap = new PriorityQueue<Integer, Integer>(
+            (a, b) -> Integer.compare(b, a)  // Reverse comparator for max-heap
+        );
         
-        // Add all boulders to the heap
+        // Add all boulders to the heap (using element as its own priority)
         for (int stone : boulders) {
             maxHeap.offer(stone, stone);
         }
         
         // Process until 1 or 0 boulders remain
         while (maxHeap.size() > 1) {
-            int y = maxHeap.poll().value(); // Heaviest
-            int x = maxHeap.poll().value(); // Second heaviest
+            int y = maxHeap.poll().value();
+            int x = maxHeap.poll().value();
             
             if (x != y) {
-                maxHeap.offer(y - x, y - x); // Add remainder
+                maxHeap.offer(y - x, y - x);
             }
         }
         
@@ -55,7 +57,7 @@ public class ProblemSolutions {
             }
         }
         
-        Collections.sort(result); // Sort alphabetically
+        Collections.sort(result);
         return result;
     }
 
@@ -63,7 +65,7 @@ public class ProblemSolutions {
      * Finds all pairs of numbers that sum to k.
      */
     public static ArrayList<String> pair(int[] input, int k) {
-        Arrays.sort(input); // Sort array first
+        Arrays.sort(input);
         ArrayList<String> result = new ArrayList<>();
         int left = 0;
         int right = input.length - 1;
@@ -71,13 +73,10 @@ public class ProblemSolutions {
         while (left < right) {
             int sum = input[left] + input[right];
             if (sum == k) {
-                // Add formatted pair to result
                 result.add("(" + input[left] + ", " + input[right] + ")");
-                
                 // Skip duplicates
                 while (left < right && input[left] == input[left + 1]) left++;
                 while (left < right && input[right] == input[right - 1]) right--;
-                
                 left++;
                 right--;
             } else if (sum < k) {
