@@ -1,4 +1,3 @@
-
 /******************************************************************
  *
  *   Zaki Khan / 272 001
@@ -11,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;
 
+@SuppressWarnings("unchecked")
 class PriorityQueue<E, P> {
     private static final int DEFAULT_CAPACITY = 10;
     final Comparator<P> comparator;
@@ -69,31 +69,29 @@ class PriorityQueue<E, P> {
         Node last = tree.remove(tree.size() - 1);
         tree.set(0, last);
         last.idx = 0;
-        
-        // Fixed heapify-down implementation
-        int current = 0;
-        while (true) {
-            int left = leftChild(current);
-            int right = rightChild(current);
-            int smallest = current;
-            
-            // Compare priorities directly using comparator
-            if (left < tree.size() && 
-                comparator.compare(tree.get(left).priority, tree.get(current).priority) < 0) {
-                smallest = left;
-            }
-            if (right < tree.size() && 
-                comparator.compare(tree.get(right).priority, tree.get(smallest).priority) < 0) {
-                smallest = right;
-            }
-            
-            if (smallest == current) break;
-            
-            swap(current, smallest);
-            current = smallest;
-        }
+        pushDown(0);
         
         return head;
+    }
+
+    private void pushDown(int i) {
+        int smallest = i;
+        int left = leftChild(i);
+        int right = rightChild(i);
+
+        if (left < tree.size() && 
+            comparator.compare(tree.get(left).priority, tree.get(smallest).priority) < 0) {
+            smallest = left;
+        }
+        if (right < tree.size() && 
+            comparator.compare(tree.get(right).priority, tree.get(smallest).priority) < 0) {
+            smallest = right;
+        }
+
+        if (smallest != i) {
+            swap(i, smallest);
+            pushDown(smallest);
+        }
     }
 
     private void pullUp(int i) {
@@ -122,6 +120,28 @@ class PriorityQueue<E, P> {
         tree.set(j, nodeI);
     }
 
+    public void remove(Node node) {
+        if (node.removed || node.idx >= tree.size() || tree.get(node.idx) != node) {
+            throw new IllegalStateException("Node is not in the queue");
+        }
+        
+        if (node.idx == tree.size() - 1) {
+            tree.remove(node.idx);
+        } else {
+            Node last = tree.get(tree.size() - 1);
+            swap(node.idx, tree.size() - 1);
+            tree.remove(tree.size() - 1);
+            node.markRemoved();
+            
+            if (last.idx > 0 && 
+                comparator.compare(tree.get(parent(last.idx)).priority, last.priority) > 0) {
+                pullUp(last.idx);
+            } else {
+                pushDown(last.idx);
+            }
+        }
+    }
+
     public class Node {
         final E value;
         P priority;
@@ -147,50 +167,8 @@ class PriorityQueue<E, P> {
             else if (cmp > 0) pushDown(idx);
         }
 
-        private void pushDown(int i) {
-            int left = leftChild(i);
-            int right = rightChild(i);
-            int smallest = i;
-
-            if (left < tree.size() && 
-                comparator.compare(tree.get(left).priority, tree.get(smallest).priority) < 0) {
-                smallest = left;
-            }
-            if (right < tree.size() && 
-                comparator.compare(tree.get(right).priority, tree.get(smallest).priority) < 0) {
-                smallest = right;
-            }
-
-            if (smallest != i) {
-                swap(i, smallest);
-                pushDown(smallest);
-            }
-        }
-
         public void remove() {
             PriorityQueue.this.remove(this);
-        }
-    }
-
-    public void remove(Node node) {
-        if (node.removed || node.idx >= tree.size() || tree.get(node.idx) != node) {
-            throw new IllegalStateException("Node is not in the queue");
-        }
-        
-        if (node.idx == tree.size() - 1) {
-            tree.remove(node.idx);
-        } else {
-            Node last = tree.get(tree.size() - 1);
-            swap(node.idx, tree.size() - 1);
-            tree.remove(tree.size() - 1);
-            node.markRemoved();
-            
-            if (last.idx > 0 && 
-                comparator.compare(tree.get(parent(last.idx)).priority, last.priority) > 0) {
-                pullUp(last.idx);
-            } else {
-                pushDown(last.idx);
-            }
         }
     }
 }
