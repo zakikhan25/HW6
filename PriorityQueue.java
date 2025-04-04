@@ -37,7 +37,7 @@ class PriorityQueue<E, P> {
     public Node add(E e, P priority) {
         Node newNode = new Node(e, priority, tree.size());
         tree.add(newNode);
-        pullUp(tree.size() - 1);
+        pullUp(newNode.idx);
         return newNode;
     }
 
@@ -66,34 +66,54 @@ class PriorityQueue<E, P> {
             return head;
         }
         
-        // Move last element to root
         Node last = tree.remove(tree.size() - 1);
         tree.set(0, last);
         last.idx = 0;
-        
-        // Heapify down
-        int current = 0;
-        while (true) {
-            int left = leftChild(current);
-            int right = rightChild(current);
-            int smallest = current;
-            
-            if (left < tree.size() && 
-                comparator.compare(tree.get(left).priority, tree.get(smallest).priority) < 0) {
-                smallest = left;
-            }
-            if (right < tree.size() && 
-                comparator.compare(tree.get(right).priority, tree.get(smallest).priority) < 0) {
-                smallest = right;
-            }
-            
-            if (smallest == current) break;
-            
-            swap(current, smallest);
-            current = smallest;
-        }
+        pushDown(0);
         
         return head;
+    }
+
+    public void remove(Node node) {
+        if (node.removed || node.idx >= tree.size() || tree.get(node.idx) != node) {
+            throw new IllegalStateException("Node is not in the queue");
+        }
+        
+        if (node.idx == tree.size() - 1) {
+            tree.remove(node.idx);
+        } else {
+            Node last = tree.get(tree.size() - 1);
+            swap(node.idx, tree.size() - 1);
+            tree.remove(tree.size() - 1);
+            node.markRemoved();
+            
+            if (last.idx > 0 && 
+                comparator.compare(tree.get(parent(last.idx)).priority, last.priority) > 0) {
+                pullUp(last.idx);
+            } else {
+                pushDown(last.idx);
+            }
+        }
+    }
+
+    private void pushDown(int i) {
+        int smallest = i;
+        int left = leftChild(i);
+        int right = rightChild(i);
+
+        if (left < tree.size() && 
+            comparator.compare(tree.get(left).priority, tree.get(smallest).priority) < 0) {
+            smallest = left;
+        }
+        if (right < tree.size() && 
+            comparator.compare(tree.get(right).priority, tree.get(smallest).priority) < 0) {
+            smallest = right;
+        }
+
+        if (smallest != i) {
+            swap(i, smallest);
+            pushDown(smallest);
+        }
     }
 
     private void pullUp(int i) {
@@ -115,11 +135,9 @@ class PriorityQueue<E, P> {
         Node nodeI = tree.get(i);
         Node nodeJ = tree.get(j);
         
-        // Swap positions
         nodeI.idx = j;
         nodeJ.idx = i;
         
-        // Swap in array
         tree.set(i, nodeJ);
         tree.set(j, nodeI);
     }
@@ -149,30 +167,7 @@ class PriorityQueue<E, P> {
             else if (cmp > 0) pushDown(idx);
         }
 
-        private void pushDown(int i) {
-            while (true) {
-                int left = leftChild(i);
-                int right = rightChild(i);
-                int smallest = i;
-                
-                if (left < tree.size() && 
-                    comparator.compare(tree.get(left).priority, tree.get(smallest).priority) < 0) {
-                    smallest = left;
-                }
-                if (right < tree.size() && 
-                    comparator.compare(tree.get(right).priority, tree.get(smallest).priority) < 0) {
-                    smallest = right;
-                }
-                
-                if (smallest == i) break;
-                
-                swap(i, smallest);
-                i = smallest;
-            }
-        }
-
         public void remove() {
-            if (removed) throw new IllegalStateException("Node already removed");
             PriorityQueue.this.remove(this);
         }
     }
