@@ -3,194 +3,150 @@
  *
  *   Zaki Khan / 272 001
  *
- *   Priority Queue Implementation
+ *   Final Corrected Priority Queue Implementation
  *
  ********************************************************************/
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Collections;
 
 @SuppressWarnings("unchecked")
-class PriorityQueue<E, P> {
-    private static final int DEFAULT_CAPACITY = 10;
-    final Comparator<P> comparator;
-    final ArrayList<Node> tree;
+class PriorityQueue<E extends Comparable<E>> {
+    private ArrayList<E> queue;
 
+    /**
+     * Constructs an empty priority queue.
+     */
     public PriorityQueue() {
-        this(DEFAULT_CAPACITY, (a, b) -> ((Comparable<P>) a).compareTo(b));
+        queue = new ArrayList<>();
     }
 
-    public PriorityQueue(int capacity, Comparator<P> comparator) {
-        tree = new ArrayList<>(capacity);
-        this.comparator = comparator;
+    /**
+     * Returns the number of elements in this queue.
+     * @return the number of elements in this queue
+     */
+    public int size() {
+        return queue.size();
     }
 
-    public int size() { return tree.size(); }
-    public boolean isEmpty() { return tree.isEmpty(); }
-    public void clear() { tree.clear(); }
-    public Node offer(E e, P p) { return add(e, p); }
-
-    public Node peek() {
-        return tree.isEmpty() ? null : tree.get(0);
+    /**
+     * Returns true if this queue contains no elements.
+     * @return true if this queue contains no elements
+     */
+    public boolean isEmpty() {
+        return queue.isEmpty();
     }
 
-    public Node add(E e, P priority) {
-        Node newNode = new Node(e, priority, tree.size());
-        tree.add(newNode);
-        pullUp(tree.size() - 1);
-        return newNode;
+    /**
+     * Returns, but does not remove, the smallest element in this queue.
+     * @return the smallest element in this queue
+     * @throws IllegalStateException if this queue is empty
+     */
+    public E peek() {
+        if (isEmpty()) {
+            throw new IllegalStateException("Queue is empty");
+        }
+        return queue.get(0);
     }
 
-    public boolean contains(E e) {
-        for (Node node : tree) {
-            if (node.value.equals(e)) {
+    /**
+     * Removes all of the elements from this queue.
+     */
+    public void clear() {
+        queue.clear();
+    }
+
+    /**
+     * Removes and returns the smallest element in this queue.
+     * @return the smallest element in this queue
+     * @throws IllegalStateException if this queue is empty
+     */
+    public E poll() {
+        if (isEmpty()) {
+            throw new IllegalStateException("Queue is empty");
+        }
+        E min = queue.get(0);
+        int lastIdx = queue.size() - 1;
+        queue.set(0, queue.get(lastIdx));
+        queue.remove(lastIdx);
+        if (!isEmpty()) {
+            siftDown(0);
+        }
+        return min;
+    }
+
+    /**
+     * Helper method to maintain heap invariant after removal.
+     * @param idx the index to start sifting down from
+     */
+    private void siftDown(int idx) {
+        int smallest = idx;
+        int leftChild = 2 * idx + 1;
+        int rightChild = 2 * idx + 2;
+        int size = queue.size();
+
+        if (leftChild < size && queue.get(leftChild).compareTo(queue.get(smallest)) < 0) {
+            smallest = leftChild;
+        }
+
+        if (rightChild < size && queue.get(rightChild).compareTo(queue.get(smallest)) < 0) {
+            smallest = rightChild;
+        }
+
+        if (smallest != idx) {
+            E temp = queue.get(idx);
+            queue.set(idx, queue.get(smallest));
+            queue.set(smallest, temp);
+            siftDown(smallest);
+        }
+    }
+
+    /**
+     * Adds the specified element to this queue.
+     * The element is added at the end of the underlying array and then
+     * "bubbled up" to maintain the min-heap property.
+     * @param element the element to add
+     */
+    public void add(E element) {
+        // Add element to the end of the heap
+        queue.add(element);
+        int index = queue.size() - 1;
+        
+        // Bubble up to maintain min-heap property
+        while (index > 0) {
+            int parentIndex = (index - 1) / 2;
+            if (queue.get(index).compareTo(queue.get(parentIndex)) >= 0) {
+                break; // Heap property satisfied
+            }
+            // Swap with parent
+            E temp = queue.get(index);
+            queue.set(index, queue.get(parentIndex));
+            queue.set(parentIndex, temp);
+            index = parentIndex;
+        }
+    }
+
+    /**
+     * Returns true if this queue contains the specified element.
+     * @param element object to be checked for containment in this queue
+     * @return true if this queue contains the specified element
+     */
+    public boolean contains(E element) {
+        // Check if element exists in the heap
+        for (E e : queue) {
+            if (e.equals(element)) {
                 return true;
             }
         }
         return false;
     }
 
-    public Node remove() {
-        if (tree.isEmpty()) {
-            throw new IllegalStateException("PriorityQueue is empty");
-        }
-        return poll();
-    }
-
-    public Node poll() {
-        if (tree.isEmpty()) return null;
-        
-        Node head = tree.get(0);
-        if (tree.size() == 1) {
-            tree.remove(0);
-            return head;
-        }
-        
-        Node last = tree.remove(tree.size() - 1);
-        tree.set(0, last);
-        last.idx = 0;
-        
-        // Fixed iterative heapify down
-        int current = 0;
-        while (true) {
-            int left = leftChild(current);
-            int right = rightChild(current);
-            int smallest = current;
-            
-            if (left < tree.size() && 
-                comparator.compare(tree.get(left).priority, tree.get(current).priority) < 0) {
-                smallest = left;
-            }
-            if (right < tree.size() && 
-                comparator.compare(tree.get(right).priority, tree.get(smallest).priority) < 0) {
-                smallest = right;
-            }
-            
-            if (smallest == current) break;
-            
-            swap(current, smallest);
-            current = smallest;
-        }
-        
-        return head;
-    }
-
-    private void pullUp(int i) {
-        while (i > 0) {
-            int parent = parent(i);
-            if (comparator.compare(tree.get(parent).priority, tree.get(i).priority) <= 0) {
-                break;
-            }
-            swap(i, parent);
-            i = parent;
-        }
-    }
-
-    private void pushDown(int i) {
-        int smallest = i;
-        int left = leftChild(i);
-        int right = rightChild(i);
-
-        if (left < tree.size() && 
-            comparator.compare(tree.get(left).priority, tree.get(smallest).priority) < 0) {
-            smallest = left;
-        }
-        if (right < tree.size() && 
-            comparator.compare(tree.get(right).priority, tree.get(smallest).priority) < 0) {
-            smallest = right;
-        }
-
-        if (smallest != i) {
-            swap(i, smallest);
-            pushDown(smallest);
-        }
-    }
-
-    int leftChild(int i) { return 2 * i + 1; }
-    int rightChild(int i) { return 2 * i + 2; }
-    int parent(int i) { return (i - 1) / 2; }
-
-    void swap(int i, int j) {
-        Node nodeI = tree.get(i);
-        Node nodeJ = tree.get(j);
-        
-        nodeI.idx = j;
-        nodeJ.idx = i;
-        
-        tree.set(i, nodeJ);
-        tree.set(j, nodeI);
-    }
-
-    public void remove(Node node) {
-        if (node.removed || node.idx >= tree.size() || tree.get(node.idx) != node) {
-            throw new IllegalStateException("Node is not in the queue");
-        }
-        
-        if (node.idx == tree.size() - 1) {
-            tree.remove(node.idx);
-        } else {
-            Node last = tree.get(tree.size() - 1);
-            swap(node.idx, tree.size() - 1);
-            tree.remove(tree.size() - 1);
-            node.markRemoved();
-            
-            if (last.idx > 0 && 
-                comparator.compare(tree.get(parent(last.idx)).priority, last.priority) > 0) {
-                pullUp(last.idx);
-            } else {
-                pushDown(last.idx);
-            }
-        }
-    }
-
-    public class Node {
-        final E value;
-        P priority;
-        int idx;
-        boolean removed = false;
-
-        public Node(E value, P priority, int idx) {
-            this.value = value;
-            this.priority = priority;
-            this.idx = idx;
-        }
-
-        public E value() { return value; }
-        public P priority() { return priority; }
-        public boolean isValid() { return !removed; }
-        void markRemoved() { removed = true; }
-
-        public void changePriority(P newPriority) {
-            if (removed) throw new IllegalStateException("Node is removed");
-            int cmp = comparator.compare(newPriority, priority);
-            priority = newPriority;
-            if (cmp < 0) pullUp(idx);
-            else if (cmp > 0) pushDown(idx);
-        }
-
-        public void remove() {
-            PriorityQueue.this.remove(this);
-        }
+    /**
+     * Returns a string representation of this queue.
+     * @return a string representation of this queue
+     */
+    @Override
+    public String toString() {
+        return queue.toString();
     }
 }
